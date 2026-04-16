@@ -1,0 +1,1356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1404</width>
+    <height>809</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>电车轨道缺陷检测系统</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_main">
+    <item>
+     <widget class="QTabWidget" name="sidebar_tabs">
+      <property name="minimumSize">
+       <size>
+        <width>350</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>400</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tab_2d">
+       <attribute name="title">
+        <string>2D 参数</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2d_tab">
+        <item>
+         <widget class="QScrollArea" name="scrollArea_2d">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents_2d">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>423</width>
+             <height>663</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2d_scroll">
+            <item>
+             <widget class="QGroupBox" name="group_camera_capture">
+              <property name="title">
+               <string>相机采集</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_camera_capture">
+               <item row="11" column="0">
+                <widget class="QLabel" name="label_save_dir">
+                 <property name="text">
+                  <string>保存目录</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QSpinBox" name="spin_cam_count">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>2</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_save_dir">
+                 <item>
+                  <widget class="QLineEdit" name="edit_save_dir"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_browse_save_dir">
+                   <property name="text">
+                    <string>浏览</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="0" column="0" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_camera_device_actions">
+                 <item>
+                  <widget class="QPushButton" name="btn_enum">
+                   <property name="text">
+                    <string>枚举设备</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_open">
+                   <property name="text">
+                    <string>打开设备</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_close">
+                   <property name="text">
+                    <string>关闭设备</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_cam_count">
+                 <property name="text">
+                  <string>相机数量</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="0" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_camera_stream_actions">
+                 <item>
+                  <widget class="QPushButton" name="btn_stream">
+                   <property name="text">
+                    <string>开始取流</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_set_params">
+                   <property name="text">
+                    <string>设置参数</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="9" column="1">
+                <widget class="QDoubleSpinBox" name="spin_default_fps">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>2</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.100000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>60.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.100000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QSpinBox" name="spin_save_interval">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>60</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QDoubleSpinBox" name="spin_default_gain">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>2</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>30.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.100000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="1">
+                <widget class="QDoubleSpinBox" name="spin_default_exposure">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>1</number>
+                 </property>
+                 <property name="minimum">
+                  <double>5.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>200000.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>100.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="label_save_interval">
+                 <property name="text">
+                  <string>抽帧保存间隔</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_default_gain">
+                 <property name="text">
+                  <string>默认增益</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
+                <widget class="QLabel" name="label_default_exposure">
+                 <property name="text">
+                  <string>默认曝光时间(us)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="label_default_fps">
+                 <property name="text">
+                  <string>默认帧率</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_camera_trigger_mode">
+                 <item>
+                  <widget class="QRadioButton" name="radio_continuous">
+                   <property name="text">
+                    <string>连续模式</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radio_trigger">
+                   <property name="text">
+                    <string>触发模式</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="check_soft_trigger">
+                   <property name="text">
+                    <string>软件触发</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_soft_once">
+                   <property name="text">
+                    <string>触发一次</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="group_2d_inference">
+              <property name="title">
+               <string>2D 推理</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_2d_inference">
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="check_inference_enabled">
+                 <property name="text">
+                  <string>启用推理</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_checkpoint_path">
+                 <property name="text">
+                  <string>模型权重路径</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QSpinBox" name="spin_min_defect_area">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>10000000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="label_min_defect_area">
+                 <property name="text">
+                  <string>最小缺陷面积(px)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_defect_save_dir">
+                 <property name="text">
+                  <string>缺陷保存目录</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_defect_dir">
+                 <item>
+                  <widget class="QLineEdit" name="edit_defect_dir"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_browse_defect_dir">
+                   <property name="text">
+                    <string>浏览</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="spin_inference_interval">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>60</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_inference_interval">
+                 <property name="text">
+                  <string>推理间隔(帧)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_checkpoint">
+                 <item>
+                  <widget class="QLineEdit" name="edit_checkpoint"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_browse_checkpoint">
+                   <property name="text">
+                    <string>浏览</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_anomaly_threshold">
+                 <property name="text">
+                  <string>异常分割阈值</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QDoubleSpinBox" name="spin_anomaly_threshold">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>6</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>2.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.000500000000000</double>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_2d_actions">
+              <item>
+               <widget class="QPushButton" name="btn_2d_apply">
+                <property name="text">
+                 <string>应用</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_2d_save_file">
+                <property name="text">
+                 <string>保存到文件</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_2d">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3d">
+       <attribute name="title">
+        <string>3D 参数</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3d_tab">
+        <item>
+         <widget class="QScrollArea" name="scrollArea_3d">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents_3d">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>349</width>
+             <height>1070</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3d_scroll">
+            <item>
+             <widget class="QGroupBox" name="group_scanner">
+              <property name="title">
+               <string>扫描仪 Scanner</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_scanner">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_trigger_mode">
+                 <property name="text">
+                  <string>触发模式</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QComboBox" name="combo_trigger_mode">
+                 <item>
+                  <property name="text">
+                   <string>encoder</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>fixed_rate</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_enc_direction">
+                 <property name="text">
+                  <string>触发方向</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QComboBox" name="combo_enc_direction">
+                 <item>
+                  <property name="text">
+                   <string>forward</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>backward</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>both</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_enc_counting">
+                 <property name="text">
+                  <string>计数模式</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QComboBox" name="combo_enc_counting">
+                 <item>
+                  <property name="text">
+                   <string>1x</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>2x</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>4x</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_enc_interval">
+                 <property name="text">
+                  <string>触发间隔(脉冲)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QSpinBox" name="spin_enc_interval">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>100000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_enc_scan_lines">
+                 <property name="text">
+                  <string>扫描行数</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QSpinBox" name="spin_enc_scan_lines">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>100000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="label_fr_rate_hz">
+                 <property name="text">
+                  <string>触发频率(Hz)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QDoubleSpinBox" name="spin_fr_rate_hz">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>2</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.100000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>2331.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.100000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_exp_time">
+                 <property name="text">
+                  <string>曝光时间(us)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QSpinBox" name="spin_exp_time">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>500</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="14" column="0">
+                <widget class="QLabel" name="label_analog_gain">
+                 <property name="text">
+                  <string>模拟增益</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="14" column="1">
+                <widget class="QComboBox" name="combo_analog_gain">
+                 <item>
+                  <property name="text">
+                   <string>Gain_1</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Gain_2</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Gain_3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Gain_4</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="15" column="0">
+                <widget class="QLabel" name="label_digital_gain">
+                 <property name="text">
+                  <string>数字增益</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="15" column="1">
+                <widget class="QSpinBox" name="spin_digital_gain">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>10</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="0">
+                <widget class="QLabel" name="label_min_gray">
+                 <property name="text">
+                  <string>最小灰度</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="16" column="1">
+                <widget class="QSpinBox" name="spin_min_gray">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>250</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="17" column="0">
+                <widget class="QLabel" name="label_min_line_width">
+                 <property name="text">
+                  <string>最小激光线宽</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="17" column="1">
+                <widget class="QSpinBox" name="spin_min_line_width">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>19</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="18" column="0">
+                <widget class="QLabel" name="label_max_line_width">
+                 <property name="text">
+                  <string>最大激光线宽</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="18" column="1">
+                <widget class="QSpinBox" name="spin_max_line_width">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>64</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="group_detection">
+              <property name="title">
+               <string>检测 Detection</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_detection">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_cad_stl">
+                 <property name="text">
+                  <string>CAD STL 路径</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <layout class="QHBoxLayout">
+                 <item>
+                  <widget class="QLineEdit" name="edit_cad_stl"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_browse_cad_stl">
+                   <property name="text">
+                    <string>浏览</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_cad_reg_pts">
+                 <property name="text">
+                  <string>配准采样点数</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="spin_cad_reg_pts">
+                 <property name="maximum">
+                  <number>10000000</number>
+                 </property>
+                 <property name="singleStep">
+                  <number>10000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_cad_det_pts">
+                 <property name="text">
+                  <string>检测采样点数</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QSpinBox" name="spin_cad_det_pts">
+                 <property name="keyboardTracking">
+                  <bool>true</bool>
+                 </property>
+                 <property name="maximum">
+                  <number>10000000</number>
+                 </property>
+                 <property name="singleStep">
+                  <number>10000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_det_threshold">
+                 <property name="text">
+                  <string>异常阈值(mm)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QDoubleSpinBox" name="spin_det_threshold">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>3</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>1000.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.100000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_voxel_size">
+                 <property name="text">
+                  <string>体素大小(mm)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QDoubleSpinBox" name="spin_voxel_size">
+                 <property name="buttonSymbols">
+                  <enum>QAbstractSpinBox::NoButtons</enum>
+                 </property>
+                 <property name="keyboardTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
+                 <property name="minimum">
+                  <double>0.001000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>100.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.001000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QCheckBox" name="check_use_registration">
+                 <property name="text">
+                  <string>启用配准</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QCheckBox" name="check_reg_fallback">
+                 <property name="text">
+                  <string>配准失败回退</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="group_correction">
+              <property name="acceptDrops">
+               <bool>false</bool>
+              </property>
+              <property name="title">
+               <string>矫正 Correction</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_correction">
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="check_corr_enabled">
+                 <property name="text">
+                  <string>启用矫正</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QCheckBox" name="check_disc_enabled">
+                 <property name="text">
+                  <string>启用判别器</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_disc_lateral_thresh">
+                 <property name="text">
+                  <string>横向偏差阈值(mm)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QDoubleSpinBox" name="spin_disc_lateral_thresh"/>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_disc_min_valid_ratio">
+                 <property name="text">
+                  <string>最低有效帧率</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QDoubleSpinBox" name="spin_disc_min_valid_ratio">
+                 <property name="maximum">
+                  <double>100.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="label_frame_thickness">
+                 <property name="text">
+                  <string>切帧厚度(mm)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QDoubleSpinBox" name="spin_frame_thickness">
+                 <property name="maximum">
+                  <double>100.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="label_smooth_window">
+                 <property name="text">
+                  <string>平滑窗口(帧)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QSpinBox" name="spin_smooth_window">
+                 <property name="maximum">
+                  <number>1000000</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="label_smooth_poly">
+                 <property name="text">
+                  <string>多项式阶数</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QSpinBox" name="spin_smooth_poly">
+                 <property name="maximum">
+                  <number>3</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
+                <widget class="QLabel" name="label_rail_percentile">
+                 <property name="text">
+                  <string>轨头百分位</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="1">
+                <widget class="QDoubleSpinBox" name="spin_rail_percentile"/>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_min_pts_frame">
+                 <property name="text">
+                  <string>最少点数/帧</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QSpinBox" name="spin_min_pts_frame"/>
+               </item>
+               <item row="11" column="0">
+                <widget class="QCheckBox" name="check_correct_lateral">
+                 <property name="text">
+                  <string>矫正横向</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="13" column="0">
+                <widget class="QCheckBox" name="check_correct_roll">
+                 <property name="text">
+                  <string>矫正横滚</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <widget class="QCheckBox" name="check_correct_height">
+                 <property name="text">
+                  <string>矫正高度</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_3d_actions">
+              <item>
+               <widget class="QPushButton" name="btn_3d_apply">
+                <property name="text">
+                 <string>应用</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_3d_save">
+                <property name="text">
+                 <string>保存到文件</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_3d">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_trace">
+       <attribute name="title">
+        <string>检测溯源</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_trace_tab">
+        <item>
+         <widget class="QTableWidget" name="table_anomaly"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_trace_buttons">
+          <item>
+           <widget class="QPushButton" name="btn_trace_refresh">
+            <property name="text">
+             <string>刷新</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_trace_open_dir">
+            <property name="text">
+             <string>打开异常目录</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_trace_export">
+            <property name="text">
+             <string>导出 CSV</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_right">
+      <item>
+       <layout class="QGridLayout" name="gridLayout_camera_views">
+        <item row="0" column="0">
+         <widget class="QWidget" name="cameraView_1" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>300</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string>background:black;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QWidget" name="cameraView_2" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>300</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string>background:black;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="checkBox_cam1">
+          <property name="text">
+           <string>相机1</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="checkBox_cam2">
+          <property name="text">
+           <string>相机2</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="group_2d_control">
+        <property name="title">
+         <string>2D 采集控制</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2d_control">
+         <item>
+          <widget class="QPushButton" name="btn_2d_save">
+           <property name="text">
+            <string>开始抽帧保存</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_2d_detect">
+           <property name="text">
+            <string>开始2D检测</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="group_3d_control">
+        <property name="title">
+         <string>3D 检测控制</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3d_control">
+         <item>
+          <widget class="QLabel" name="label_3d_mode">
+           <property name="text">
+            <string>执行模式</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="combo_3d_mode">
+           <item>
+            <property name="text">
+             <string>扫描 (scan)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>检测 (detect)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>重置 (reset)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>全流程自动 (auto)</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_3d_execute">
+           <property name="text">
+            <string>执行</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_3d_stop">
+           <property name="text">
+            <string>停止</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_progress_title">
+           <property name="text">
+            <string>进度</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3d_progress">
+           <property name="text">
+            <string>— / —</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3d_control">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextEdit" name="textEdit_log">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>180</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>运行日志 / 检测结果输出...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1404</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_file">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="action_save_config"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_about">
+    <property name="title">
+     <string>关于</string>
+    </property>
+    <addaction name="action_about"/>
+   </widget>
+   <addaction name="menu_file"/>
+   <addaction name="menu_about"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_save_config">
+   <property name="text">
+    <string>保存配置</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="text">
+    <string>退出</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>关于</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

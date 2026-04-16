@@ -1,0 +1,104 @@
+scanner:
+  trigger_mode: fixed_rate
+  encoder:
+    trigger_direction: forward
+    signal_counting_mode: 1x
+    trigger_interval: 2
+    scan_line_count: 2500
+  fixed_rate:
+    rate_hz: 1000.0
+    scan_line_count: 2500
+  exposure:
+    mode: timed
+    exposure_time_us: 300
+    proportion1: 40.0
+    proportion2: 80.0
+    first_threshold: 10.0
+    second_threshold: 60.0
+  laser_power: 100
+  analog_gain: Gain_4
+  digital_gain: 0
+  min_grayscale: 50
+  min_laser_line_width: 2
+  max_laser_line_width: 20
+  spot_selection: Strongest
+  gap_filling: 16
+  filter: Mean
+  mean_filter_window: 2
+odometry:
+  enabled: false
+  tcp_ip: 192.168.1.200
+  tcp_port: 4001
+  resolution: 1024
+  travel_per_rev_mm: 250.0
+  slave_id: 1
+  reg_addr: 0
+  update_rate_hz: 50
+virtual_odometry:
+  speed_mm_per_s: 100.0
+track:
+  total_length_mm: 10000.0
+  debug_segment_length_mm: 2000.0
+roi:
+  x_min: 0
+  x_max: 200.0
+  z_min: 75.0
+  z_max: 200.0
+mission:
+  segments_per_trip: 20
+paths:
+  data_dir: data
+  pending_dir: data/pending
+  anomaly_dir: data/anomaly
+  coverage_map: log/coverage_map.json
+  alert_log: log/alert_log.csv
+  cad_stl: data/cad/QU70_SingleSide.STL
+  corrected_dir: data/corrected
+detection:
+  cad_sample_points: 500000
+  threshold_mm: 0.5
+  cad_sample_points_registration: 100000
+  voxel_size: 0.1
+  use_registration: true
+  registration_fallback_to_quick: true
+  cad_stl_path: data/cad/QU70_SingleSide.STL
+correction:
+  enabled: true
+  discriminator:
+    enabled: true
+    lateral_std_threshold_mm: 1.0
+    min_valid_frame_ratio: 0.5
+  corrector:
+    frame_thickness_mm: 1.0
+    smooth_window_frames: 5000.0
+    smooth_polyorder: 1
+    rail_head_percentile: 0.0
+    min_points_per_frame: 10
+    dual_rail_mode: false
+    gauge_nominal_mm: 1435.0
+    correct_lateral: true
+    correct_height: false
+    correct_roll: false
+    debug_scan_path: data/pending/segment_00000.ply
+logging:
+  level: INFO
+  log_file: log/rail_inspection.log
+cameras:
+  count: 2
+  roi:
+    width: 1240
+    height: 1240
+    offset_x: 192
+    offset_y: 0
+  default_exposure_us: 5000.0
+  default_gain: 5.0
+  default_fps: 30.0
+  save_interval: 25
+  save_dir: data/2d_frames
+inference_2d:
+  enabled: true
+  interval: 30
+  checkpoint_path: weights/RD4AD_res34_rail_mix.pth
+  defect_save_dir: data/defect_images
+  anomaly_threshold: 0.6
+  min_defect_area: 99

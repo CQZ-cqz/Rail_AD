@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "total_length_mm": 10000.0,
+  "segment_length_mm": 2000.0,
+  "segments": {
+    "0": {
+      "state": "normal",
+      "start_mm": 0.0,
+      "end_mm": 2000.0,
+      "scan_time": "2026-04-16T12:03:31.264656Z",
+      "detect_time": "2026-04-16T12:12:44Z",
+      "point_cloud_file": null,
+      "meta_file": null
+    },
+    "1": {
+      "state": "normal",
+      "start_mm": 2000.0,
+      "end_mm": 4000.0,
+      "scan_time": "2026-04-16T12:03:54.822683Z",
+      "detect_time": "2026-04-16T12:12:50Z",
+      "point_cloud_file": null,
+      "meta_file": null
+    },
+    "2": {
+      "state": "normal",
+      "start_mm": 4000.0,
+      "end_mm": 6000.0,
+      "scan_time": "2026-04-16T12:04:18.815483Z",
+      "detect_time": "2026-04-16T12:12:55Z",
+      "point_cloud_file": null,
+      "meta_file": null
+    },
+    "3": {
+      "state": "unscanned",
+      "start_mm": 6000.0,
+      "end_mm": 8000.0,
+      "scan_time": null,
+      "detect_time": null,
+      "point_cloud_file": null,
+      "meta_file": null
+    },
+    "4": {
+      "state": "unscanned",
+      "start_mm": 8000.0,
+      "end_mm": 10000.0,
+      "scan_time": null,
+      "detect_time": null,
+      "point_cloud_file": null,
+      "meta_file": null
+    }
+  }
+}

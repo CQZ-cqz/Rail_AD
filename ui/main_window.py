@@ -5,7 +5,7 @@ import subprocess
 import threading
 
 import yaml
-from PyQt5.QtCore import QDateTime, QEvent, QObject, pyqtSignal
+from PyQt5.QtCore import QDateTime, QEvent, QObject, QTimer, pyqtSignal
 from PyQt5.QtWidgets import QAbstractSpinBox, QFileDialog, QLabel, QMainWindow
 
 from ui.Ui_MainWindow import Ui_MainWindow
@@ -64,6 +64,7 @@ class MainWindow(QMainWindow):
     device_info_signal = pyqtSignal(int, str, str)
     inference_result_signal = pyqtSignal(int, object)
     three_d_status_signal = pyqtSignal(str)
+    encoder_pos_signal = pyqtSignal(float)
 
     def __init__(self, cfg=None, config_path: str = "config.yaml", parent=None):
         super().__init__(parent)
@@ -81,6 +82,11 @@ class MainWindow(QMainWindow):
         self._three_d_proc = None
         self._three_d_proc_lock = threading.Lock()
 
+        # 编码器相关
+        self._encoder = None
+        self._encoder_timer = QTimer(self)
+        self._encoder_timer.timeout.connect(self._update_encoder_display)
+
         self._setup_status_bar()
         self._connect_threadsafe_signals()
         self._connect_signals()
@@ -94,6 +100,7 @@ class MainWindow(QMainWindow):
         self.device_info_signal.connect(self._on_device_info)
         self.inference_result_signal.connect(self._on_inference_result)
         self.three_d_status_signal.connect(self._on_3d_status_changed)
+        self.encoder_pos_signal.connect(self._on_encoder_pos_updated)
 
     def _setup_status_bar(self):
         self.label_status_3d = QLabel("3D: 就绪")
@@ -132,6 +139,10 @@ class MainWindow(QMainWindow):
         self.ui.btn_3d_stop.clicked.connect(self.on_stop_3d)
         self.ui.btn_3d_apply.clicked.connect(self.on_apply_3d_params)
         self.ui.btn_3d_save.clicked.connect(self.on_save_3d_params_to_file)
+
+        # 编码器控制
+        self.ui.btn_encoder_connect.toggled.connect(self.on_toggle_encoder)
+        self.ui.btn_encoder_zero.clicked.connect(self.on_encoder_zero)
 
         # 菜单
         self.ui.action_save_config.triggered.connect(self.on_save_all_config)
@@ -238,6 +249,7 @@ class MainWindow(QMainWindow):
         inference = self.cfg.get("inference_2d", {})
         paths = self.cfg.get("paths", {})
         detection = self.cfg.get("detection", {})
+        correction = self.cfg.get("correction", {})
 
         if cameras:
             self.ui.spin_cam_count.setValue(int(cameras.get("count", self.ui.spin_cam_count.value())))
@@ -297,6 +309,27 @@ class MainWindow(QMainWindow):
             self.ui.spin_voxel_size.setValue(float(detection.get("voxel_size", self.ui.spin_voxel_size.value())))
             self.ui.check_use_registration.setChecked(bool(detection.get("use_registration", self.ui.check_use_registration.isChecked())))
             self.ui.check_reg_fallback.setChecked(bool(detection.get("registration_fallback_to_quick", self.ui.check_reg_fallback.isChecked())))
+            self.ui.spin_cad_reg_pts.setValue(int(detection.get("cad_sample_points_registration", self.ui.spin_cad_reg_pts.value())))
+            self.ui.spin_cad_det_pts.setValue(int(detection.get("cad_sample_points", self.ui.spin_cad_det_pts.value())))
+
+        if correction:
+            self.ui.check_corr_enabled.setChecked(bool(correction.get("enabled", self.ui.check_corr_enabled.isChecked())))
+            disc = correction.get("discriminator", {})
+            corr = correction.get("corrector", {})
+
+            self.ui.check_disc_enabled.setChecked(bool(disc.get("enabled", self.ui.check_disc_enabled.isChecked())))
+            self.ui.spin_disc_lateral_thresh.setValue(float(disc.get("lateral_std_threshold_mm", self.ui.spin_disc_lateral_thresh.value())))
+            self.ui.spin_disc_min_valid_ratio.setValue(float(disc.get("min_valid_frame_ratio", self.ui.spin_disc_min_valid_ratio.value())))
+
+            self.ui.spin_frame_thickness.setValue(float(corr.get("frame_thickness_mm", self.ui.spin_frame_thickness.value())))
+            self.ui.spin_smooth_window.setValue(int(corr.get("smooth_window_frames", self.ui.spin_smooth_window.value())))
+            self.ui.spin_smooth_poly.setValue(int(corr.get("smooth_polyorder", self.ui.spin_smooth_poly.value())))
+            self.ui.spin_rail_percentile.setValue(float(corr.get("rail_head_percentile", self.ui.spin_rail_percentile.value())))
+            self.ui.spin_min_pts_frame.setValue(int(corr.get("min_points_per_frame", self.ui.spin_min_pts_frame.value())))
+
+            self.ui.check_correct_lateral.setChecked(bool(corr.get("correct_lateral", self.ui.check_correct_lateral.isChecked())))
+            self.ui.check_correct_height.setChecked(bool(corr.get("correct_height", self.ui.check_correct_height.isChecked())))
+            self.ui.check_correct_roll.setChecked(bool(corr.get("correct_roll", self.ui.check_correct_roll.isChecked())))
 
     def _choose_directory(self, title: str, current_text: str = "") -> str:
         start_dir = current_text or str(Path.cwd())
@@ -413,6 +446,7 @@ class MainWindow(QMainWindow):
         self._log(f"应用 2D 参数: 采样间隔={interval}")
 
     def on_apply_3d_params(self):
+        self._collect_3d_params_to_cfg()
         self._log("应用 3D 参数")
 
     def on_save_2d_params_to_file(self):
@@ -480,11 +514,21 @@ class MainWindow(QMainWindow):
             self._log(f"设置 CAD STL 路径: {chosen}")
 
     def on_save_3d_params_to_file(self):
+        self._collect_3d_params_to_cfg()
+
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(self.cfg, f, allow_unicode=True, sort_keys=False)
+        self._log(f"保存 3D 参数到文件: {Path(self.config_path).resolve()}")
+
+    def _collect_3d_params_to_cfg(self):
         self.cfg.setdefault("scanner", {})
         self.cfg["scanner"].setdefault("encoder", {})
         self.cfg["scanner"].setdefault("fixed_rate", {})
         self.cfg["scanner"].setdefault("exposure", {})
         self.cfg.setdefault("detection", {})
+        self.cfg.setdefault("correction", {})
+        self.cfg["correction"].setdefault("discriminator", {})
+        self.cfg["correction"].setdefault("corrector", {})
         self.cfg.setdefault("paths", {})
 
         self.cfg["scanner"]["trigger_mode"] = self.ui.combo_trigger_mode.currentText()
@@ -508,14 +552,26 @@ class MainWindow(QMainWindow):
         self.cfg["detection"]["voxel_size"] = float(self.ui.spin_voxel_size.value())
         self.cfg["detection"]["use_registration"] = bool(self.ui.check_use_registration.isChecked())
         self.cfg["detection"]["registration_fallback_to_quick"] = bool(self.ui.check_reg_fallback.isChecked())
+        self.cfg["detection"]["cad_sample_points_registration"] = int(self.ui.spin_cad_reg_pts.value())
+        self.cfg["detection"]["cad_sample_points"] = int(self.ui.spin_cad_det_pts.value())
+
+        self.cfg["correction"]["enabled"] = bool(self.ui.check_corr_enabled.isChecked())
+        self.cfg["correction"]["discriminator"]["enabled"] = bool(self.ui.check_disc_enabled.isChecked())
+        self.cfg["correction"]["discriminator"]["lateral_std_threshold_mm"] = float(self.ui.spin_disc_lateral_thresh.value())
+        self.cfg["correction"]["discriminator"]["min_valid_frame_ratio"] = float(self.ui.spin_disc_min_valid_ratio.value())
+
+        self.cfg["correction"]["corrector"]["frame_thickness_mm"] = float(self.ui.spin_frame_thickness.value())
+        self.cfg["correction"]["corrector"]["smooth_window_frames"] = int(self.ui.spin_smooth_window.value())
+        self.cfg["correction"]["corrector"]["smooth_polyorder"] = int(self.ui.spin_smooth_poly.value())
+        self.cfg["correction"]["corrector"]["rail_head_percentile"] = float(self.ui.spin_rail_percentile.value())
+        self.cfg["correction"]["corrector"]["min_points_per_frame"] = int(self.ui.spin_min_pts_frame.value())
+        self.cfg["correction"]["corrector"]["correct_lateral"] = bool(self.ui.check_correct_lateral.isChecked())
+        self.cfg["correction"]["corrector"]["correct_height"] = bool(self.ui.check_correct_height.isChecked())
+        self.cfg["correction"]["corrector"]["correct_roll"] = bool(self.ui.check_correct_roll.isChecked())
 
         cad_path = self.ui.edit_cad_stl.text().strip()
         self.cfg["paths"]["cad_stl"] = cad_path
         self.cfg["detection"]["cad_stl_path"] = cad_path
-
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.safe_dump(self.cfg, f, allow_unicode=True, sort_keys=False)
-        self._log(f"保存 3D 参数到文件: {self.config_path}")
 
     # ---------- 2D 运行控制 ----------
     def on_toggle_frame_saving(self, checked: bool):
@@ -567,6 +623,10 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         try:
             self._stop_3d_task()
+            # 关闭编码器
+            self._encoder_timer.stop()
+            if self._encoder is not None:
+                self._encoder.stop()
             if self.inference_manager and self.inference_manager.is_running:
                 self.inference_manager.stop()
             if self.camera_manager is not None:
@@ -639,6 +699,7 @@ class MainWindow(QMainWindow):
                     cwd=cwd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,   # ← 新增这一行，明确关闭 stdin
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -712,3 +773,96 @@ class MainWindow(QMainWindow):
 
     def on_about(self):
         self._log("关于")
+
+    # ---------- 编码器控制 ----------
+    def _init_encoder(self):
+        """初始化编码器（从配置加载参数）"""
+        odometry_cfg = self.cfg.get("odometry", {})
+        if not odometry_cfg:
+            # 使用默认配置
+            odometry_cfg = {
+                "enabled": True,
+                "connection_type": "serial",
+                "tcp_ip": "169.254.88.200",
+                "tcp_port": 4001,
+                "tcp_timeout": 2.0,
+                "serial_port": "COM1",
+                "baudrate": 9600,
+                "bytesize": 8,
+                "parity": "N",
+                "stopbits": 1,
+                "timeout": 1.0,
+                "resolution": 1024,
+                "travel_per_rev_mm": 250.0,
+                "slave_id": 0x01,
+                "reg_addr": 0x0000,
+                "update_rate_hz": 50,
+            }
+            self.cfg["odometry"] = odometry_cfg
+
+        # 延迟导入避免循环依赖
+        try:
+            from core.odometry import EncoderOdometry
+            self._encoder = EncoderOdometry(odometry_cfg)
+            self._log("编码器管理器已初始化")
+        except Exception as exc:
+            self._log(f"编码器初始化失败: {exc}")
+            self._encoder = None
+
+    def on_toggle_encoder(self, checked: bool):
+        """连接/断开编码器"""
+        if checked:
+            if self._encoder is None:
+                self._init_encoder()
+            if self._encoder is None:
+                self._log("编码器未初始化，无法连接")
+                self.ui.btn_encoder_connect.setChecked(False)
+                return
+
+            try:
+                self._encoder.start()
+                self.ui.btn_encoder_connect.setText("断开")
+                self._encoder_timer.start(100)  # 100ms更新一次
+                self._log("编码器已连接")
+            except Exception as exc:
+                self._log(f"编码器连接失败: {exc}")
+                self.ui.btn_encoder_connect.setChecked(False)
+        else:
+            self._encoder_timer.stop()
+            if self._encoder is not None:
+                self._encoder.stop()
+            self.ui.btn_encoder_connect.setText("连接")
+            self.ui.label_encoder_pos.setText("-- mm")
+            self._log("编码器已断开")
+
+    def on_encoder_zero(self):
+        """编码器清零"""
+        if self._encoder is None:
+            self._log("编码器未初始化")
+            return
+        if not self.ui.btn_encoder_connect.isChecked():
+            self._log("编码器未连接，无法清零")
+            return
+
+        try:
+            self._encoder.reset()
+            self._log("编码器已清零")
+        except Exception as exc:
+            self._log(f"编码器清零失败: {exc}")
+
+    def _update_encoder_display(self):
+        """定时器回调：读取并更新里程显示"""
+        if self._encoder is None:
+            return
+        try:
+            mm = self._encoder.get_mileage_mm()
+            self.encoder_pos_signal.emit(mm)
+        except Exception:
+            pass
+
+    def _on_encoder_pos_updated(self, mm: float):
+        """更新里程显示（线程安全）"""
+        if mm >= 0:
+            self.ui.label_encoder_pos.setText(f"{mm:.2f} mm")
+        else:
+            self.ui.label_encoder_pos.setText(f"-{abs(mm):.2f} mm")

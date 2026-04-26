@@ -3,10 +3,9 @@ odometry.py – Mileage tracking for the rail inspection system.
 
 Two implementations are provided:
 
-  EncoderOdometry  – reads a Modbus-RTU single-turn absolute encoder over TCP,
-                     accumulates multi-turn count in software (identical logic
-                     to the provided example script, wrapped in a background thread
-                     with auto-reconnect).
+    EncoderOdometry  – reads a Modbus-RTU single-turn absolute encoder via
+                                         switchable transport (TCP or serial/COM), accumulates
+                                         multi-turn count in software, and auto-reconnects.
 
   VirtualOdometry  – simulates linear movement at a constant speed.
                      Use for local debugging when the encoder is not connected.
@@ -28,6 +27,13 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from typing import Optional
+
+try:
+    import serial
+    from serial import SerialException
+except ImportError:  # serial mode will raise a clearer runtime error on use
+    serial = None
+    SerialException = OSError
 
 logger = logging.getLogger(__name__)
 
@@ -62,16 +68,38 @@ class OdometryBase(ABC):
 
 class EncoderOdometry(OdometryBase):
     """
-    Reads a single-turn absolute encoder via Modbus-RTU over TCP.
+    Reads a single-turn absolute encoder via Modbus-RTU over TCP or serial.
 
     Multi-turn mileage is accumulated in software by detecting wrap-arounds
-    (the same technique used in the reference encoder.py script).
-    The background thread reconnects automatically on network errors.
+    (the same technique used in the reference encoder.py/encoder_com.py script).
+    The background thread reconnects automatically on communication errors.
     """
 
     def __init__(self, cfg: dict):
-        self._ip          = cfg["tcp_ip"]
-        self._port        = cfg["tcp_port"]
+        self._connection_type = str(cfg.get("connection_type", "tcp")).lower()
+        if self._connection_type in ("com", "rs485", "serial"):
+            self._connection_type = "serial"
+        elif self._connection_type in ("tcp", "ethernet", "network"):
+            self._connection_type = "tcp"
+        else:
+            raise ValueError(
+                f"Invalid odometry.connection_type '{self._connection_type}'. "
+                "Must be 'tcp' or 'serial'."
+            )
+
+        # TCP configuration (for connection_type=tcp)
+        self._ip          = cfg.get("tcp_ip", "169.254.88.200")
+        self._port        = int(cfg.get("tcp_port", 4001))
+        self._tcp_timeout = float(cfg.get("tcp_timeout", 2.0))
+
+        # Serial configuration (for connection_type=serial)
+        self._serial_port = cfg.get("serial_port", "COM1")
+        self._baudrate    = int(cfg.get("baudrate", 9600))
+        self._bytesize    = int(cfg.get("bytesize", 8))
+        self._parity      = str(cfg.get("parity", "N"))
+        self._stopbits    = cfg.get("stopbits", 1)
+        self._ser_timeout = float(cfg.get("timeout", 1.0))
+
         self._resolution  = cfg["resolution"]           # pulses / revolution
         self._mm_per_rev  = cfg["travel_per_rev_mm"]    # mm / revolution
         self._slave_id    = cfg.get("slave_id", 0x01)
@@ -82,7 +110,7 @@ class EncoderOdometry(OdometryBase):
         self._lock              = threading.Lock()
         self._running: bool     = False
         self._thread: Optional[threading.Thread] = None
-        self._sock:   Optional[socket.socket]    = None
+        self._conn: Optional[object]             = None
 
         # Multi-turn state
         self._last_pos:   Optional[int] = None
@@ -111,41 +139,113 @@ class EncoderOdometry(OdometryBase):
         ])
         return frame + self._crc16(frame)
 
-    @staticmethod
-    def _parse(data: bytes) -> Optional[int]:
+    def _parse(self, data: bytes) -> Optional[int]:
         """Parse Modbus response; return single-turn position or None on error."""
-        if len(data) < 7 or data[1] != 0x03:
+        if len(data) < 7:
             return None
-        return (data[3] << 8) | data[4]
 
-    # ── TCP connection ───────────────────────────────────────
+        # Search for a valid 7-byte RTU frame in the received payload.
+        for idx in range(0, len(data) - 6):
+            frame = data[idx:idx + 7]
+            if frame[0] != self._slave_id or frame[1] != 0x03 or frame[2] != 0x02:
+                continue
+            if frame[5:7] != self._crc16(frame[:5]):
+                continue
+            return (frame[3] << 8) | frame[4]
+        return None
 
-    def _connect(self) -> Optional[socket.socket]:
-        """Block until connected or _running becomes False."""
+    # ── Connection helpers ───────────────────────────────────
+
+    def _comm_exceptions(self):
+        exc_types = [OSError, socket.timeout]
+        if serial is not None:
+            exc_types.append(SerialException)
+        return tuple(exc_types)
+
+    def _close_connection(self) -> None:
+        if not self._conn:
+            return
+        try:
+            self._conn.close()
+        except self._comm_exceptions():
+            pass
+        finally:
+            self._conn = None
+
+    def _connect_tcp(self) -> Optional[object]:
         while self._running:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(2.0)
+                s.settimeout(self._tcp_timeout)
                 s.connect((self._ip, self._port))
-                logger.info("Encoder connected to %s:%d.", self._ip, self._port)
+                logger.info("Encoder connected via TCP %s:%d.", self._ip, self._port)
                 return s
-            except (OSError, socket.timeout) as exc:
-                logger.warning("Encoder connect failed (%s). Retry in 2 s…", exc)
+            except self._comm_exceptions() as exc:
+                logger.warning("Encoder TCP connect failed (%s). Retry in 2 s...", exc)
                 time.sleep(2.0)
         return None
+
+    def _connect_serial(self) -> Optional[object]:
+        if serial is None:
+            raise RuntimeError(
+                "pyserial is required for odometry.connection_type=serial. "
+                "Install with: pip install pyserial"
+            )
+
+        while self._running:
+            try:
+                s = serial.Serial(
+                    port=self._serial_port,
+                    baudrate=self._baudrate,
+                    bytesize=self._bytesize,
+                    parity=self._parity,
+                    stopbits=self._stopbits,
+                    timeout=self._ser_timeout,
+                )
+                logger.info(
+                    "Encoder connected via serial %s (%d,%d,%s,%s).",
+                    self._serial_port,
+                    self._baudrate,
+                    self._bytesize,
+                    self._parity,
+                    self._stopbits,
+                )
+                return s
+            except self._comm_exceptions() as exc:
+                logger.warning("Encoder serial open failed (%s). Retry in 2 s...", exc)
+                time.sleep(2.0)
+        return None
+
+    def _connect(self) -> Optional[object]:
+        """Block until connected or _running becomes False."""
+        if self._connection_type == "serial":
+            return self._connect_serial()
+        return self._connect_tcp()
+
+    def _read_frame(self) -> bytes:
+        """Send one Modbus read request and return raw response bytes."""
+        if self._conn is None:
+            raise OSError("Encoder connection is not established.")
+
+        if self._connection_type == "serial":
+            self._conn.write(self._read_cmd)
+            return self._conn.read(8)
+
+        # TCP mode
+        self._conn.sendall(self._read_cmd)
+        return self._conn.recv(32)
 
     # ── Background loop ──────────────────────────────────────
 
     def _loop(self) -> None:
         interval = 1.0 / self._update_hz
-        self._sock = self._connect()
-        if self._sock is None:
+        self._conn = self._connect()
+        if self._conn is None:
             return
 
         while self._running:
             try:
-                self._sock.send(self._read_cmd)
-                raw = self._sock.recv(32)
+                raw = self._read_frame()
                 pos = self._parse(raw)
                 if pos is None:
                     continue
@@ -168,14 +268,11 @@ class EncoderOdometry(OdometryBase):
 
                 time.sleep(interval)
 
-            except (OSError, socket.timeout) as exc:
+            except self._comm_exceptions() as exc:
                 logger.warning("Encoder read error (%s). Reconnecting…", exc)
-                try:
-                    self._sock.close()
-                except OSError:
-                    pass
-                self._sock = self._connect()
-                if self._sock is None:
+                self._close_connection()
+                self._conn = self._connect()
+                if self._conn is None:
                     break
 
     # ── Public API ───────────────────────────────────────────
@@ -190,11 +287,7 @@ class EncoderOdometry(OdometryBase):
 
     def stop(self) -> None:
         self._running = False
-        if self._sock:
-            try:
-                self._sock.close()
-            except OSError:
-                pass
+        self._close_connection()
         if self._thread:
             self._thread.join(timeout=4.0)
         logger.info("EncoderOdometry stopped. Final mileage: %.2f mm.", self._mileage_mm)

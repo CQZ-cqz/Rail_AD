@@ -27,6 +27,7 @@ import logging
 import os
 import tempfile
 import threading
+import time
 from typing import Optional
 
 import numpy as np
@@ -120,14 +121,24 @@ class Scanner:
 
     # ── Lifecycle ────────────────────────────────────────────
 
-    def connect(self) -> bool:
-        """Discover and connect to the first available profiler."""
-        if not find_and_connect(self._profiler):
-            logger.error("No profiler found or connection failed.")
+    # def connect(self) -> bool:
+    #     """Discover and connect to the first available profiler."""
+    #     if not find_and_connect(self._profiler):
+    #         logger.error("No profiler found or connection failed.")
+    #         return False
+    #     self._user_set  = self._profiler.current_user_set()
+    #     self._connected = True
+    #     logger.info("Connected to Mech-Eye profiler.")
+    #     return True
+    
+    def connect_by_ip(self, ip: str, timeout_ms: int = 5000) -> bool:
+        error = self._profiler.connect(ip, timeout_ms)
+        if not error.is_ok():
+            show_error(error)
             return False
-        self._user_set  = self._profiler.current_user_set()
+        self._user_set = self._profiler.current_user_set()
         self._connected = True
-        logger.info("Connected to Mech-Eye profiler.")
+        logger.info(f"Connected to {ip}")
         return True
 
     def disconnect(self) -> None:
@@ -242,58 +253,107 @@ class Scanner:
 
     # ── Acquisition ──────────────────────────────────────────
 
+    # def acquire_point_cloud(self) -> np.ndarray:
+    #     """
+    #     Acquire one batch and return a NaN-free (N, 3) float32 array in mm.
+
+    #     Points are in the custom coordinate system if a transformation has
+    #     been configured in Mech-Eye Viewer; otherwise they are in the camera
+    #     frame (a warning is logged).
+
+    #     Returns an empty (0, 3) array on failure.
+    #     """
+    #     cb = _AcquisitionCallback(self._data_width)
+
+    #     # Set a generous callback timeout (ms)
+    #     show_error(self._user_set.set_int_value(CallbackRetrievalTimeout.name, 60_000))
+
+    #     status = self._profiler.register_acquisition_callback(cb)
+    #     if not status.is_ok():
+    #         logger.error("Failed to register acquisition callback.")
+    #         show_error(status)
+    #         return np.empty((0, 3), dtype=np.float32)
+
+    #     logger.info("Starting acquisition…")
+    #     status = self._profiler.start_acquisition()
+    #     if not status.is_ok():
+    #         logger.error("start_acquisition() failed.")
+    #         show_error(status)
+    #         return np.empty((0, 3), dtype=np.float32)
+
+    #     if self._sw_trigger:
+    #         status = self._profiler.trigger_software()
+    #         if not status.is_ok():
+    #             logger.error("trigger_software() failed.")
+    #             show_error(status)
+    #             self._profiler.stop_acquisition()
+    #             return np.empty((0, 3), dtype=np.float32)
+
+    #     if not cb.wait(timeout=120.0):
+    #         logger.error("Acquisition timed out after 120 s.")
+    #         self._profiler.stop_acquisition()
+    #         return np.empty((0, 3), dtype=np.float32)
+
+    #     status = self._profiler.stop_acquisition()
+    #     if not status.is_ok():
+    #         show_error(status)
+
+    #     if cb.profile_batch.check_flag(ProfileBatch.BatchFlag_Incomplete):
+    #         logger.warning(
+    #             "Batch is incomplete. Valid profiles: %d.",
+    #             cb.profile_batch.valid_height(),
+    #         )
+
+    #     return self._batch_to_numpy(cb.profile_batch)
+
     def acquire_point_cloud(self) -> np.ndarray:
-        """
-        Acquire one batch and return a NaN-free (N, 3) float32 array in mm.
+        scan_lines = (
+            self._cfg["scanner"]["encoder"]["scan_line_count"]
+            if self._cfg["scanner"]["trigger_mode"] == "encoder"
+            else self._cfg["scanner"]["fixed_rate"]["scan_line_count"]
+        )
 
-        Points are in the custom coordinate system if a transformation has
-        been configured in Mech-Eye Viewer; otherwise they are in the camera
-        frame (a warning is logged).
+        profile_batch = ProfileBatch(self._data_width)
+        profile_batch.reserve(scan_lines)
 
-        Returns an empty (0, 3) array on failure.
-        """
-        cb = _AcquisitionCallback(self._data_width)
-
-        # Set a generous callback timeout (ms)
-        show_error(self._user_set.set_int_value(CallbackRetrievalTimeout.name, 60_000))
-
-        status = self._profiler.register_acquisition_callback(cb)
-        if not status.is_ok():
-            logger.error("Failed to register acquisition callback.")
-            show_error(status)
-            return np.empty((0, 3), dtype=np.float32)
-
-        logger.info("Starting acquisition…")
+        logger.info("Starting acquisition, expecting %d lines...", scan_lines)
         status = self._profiler.start_acquisition()
         if not status.is_ok():
-            logger.error("start_acquisition() failed.")
             show_error(status)
             return np.empty((0, 3), dtype=np.float32)
 
         if self._sw_trigger:
             status = self._profiler.trigger_software()
             if not status.is_ok():
-                logger.error("trigger_software() failed.")
                 show_error(status)
                 self._profiler.stop_acquisition()
                 return np.empty((0, 3), dtype=np.float32)
 
-        if not cb.wait(timeout=120.0):
-            logger.error("Acquisition timed out after 120 s.")
-            self._profiler.stop_acquisition()
-            return np.empty((0, 3), dtype=np.float32)
+        # 轮询累积，直到行数达标
+        deadline = time.time() + 120.0
+        while profile_batch.height() < scan_lines:
+            if time.time() > deadline:
+                logger.error("Acquisition timeout, got %d/%d lines.",
+                            profile_batch.height(), scan_lines)
+                break
+            batch = ProfileBatch(self._data_width)
+            status = self._profiler.retrieve_batch_data(batch)
+            if status.is_ok():
+                profile_batch.append(batch)
+                # logger.info("Acquired %d / %d lines", profile_batch.height(), scan_lines)
+            else:
+                show_error(status)
+                break
 
         status = self._profiler.stop_acquisition()
         if not status.is_ok():
             show_error(status)
 
-        if cb.profile_batch.check_flag(ProfileBatch.BatchFlag_Incomplete):
-            logger.warning(
-                "Batch is incomplete. Valid profiles: %d.",
-                cb.profile_batch.valid_height(),
-            )
+        if profile_batch.check_flag(ProfileBatch.BatchFlag_Incomplete):
+            logger.warning("Incomplete batch, valid=%d / expected=%d",
+                        profile_batch.valid_height(), scan_lines)
 
-        return self._batch_to_numpy(cb.profile_batch)
+        return self._batch_to_numpy(profile_batch)
 
     # ── Internal: ProfileBatch → numpy ───────────────────────
 
@@ -308,17 +368,24 @@ class Scanner:
           4. read_ply()                    – our utils reader → numpy
           5. remove NaN / Inf rows
         """
-        s            = self._cfg["scanner"]
-        mode         = s["trigger_mode"]
-        use_encoder  = (mode == "encoder")
-        trig_intv    = s["encoder"]["trigger_interval"] if use_encoder else 1
+        s = self._cfg["scanner"]
+        mode = s["trigger_mode"]
+        enc_cfg = s.get("encoder", {})
+        # Keep encoder spacing by default, but allow disabling it to align Y with line index.
+        use_encoder = (mode == "encoder")
+        use_encoder_y = self._cfg["scanner"].get("use_encoder_y", False)
+        if use_encoder:
+            err, trig_intv = self._user_set.get_int_value(EncoderTriggerInterval.name)
+            show_error(err)
+        else:
+            trig_intv = 1
 
         err, x_res = self._user_set.get_float_value(XAxisResolution.name)
         show_error(err)
         err, y_res = self._user_set.get_float_value(YResolution.name)
         show_error(err)
 
-        pc = batch.get_untextured_point_cloud(x_res, y_res, use_encoder, trig_intv)
+        pc = batch.get_untextured_point_cloud(x_res, y_res, use_encoder_y, trig_intv)
 
         # Apply coordinate transformation (set via Mech-Eye Viewer → Custom Reference Frame)
         xform = get_transformation_params(self._profiler)
@@ -349,7 +416,20 @@ class Scanner:
         # Remove NaN and Inf
         valid  = np.isfinite(points).all(axis=1)
         points = points[valid]
+
+        # In encoder mode, absolute encoder counts can push Y to very large values and
+        # trigger float quantisation (e.g. 32 mm steps at large magnitudes).
+        # Normalise Y to relative travel by default to keep downstream pipeline stable.
+        if mode == "encoder" and enc_cfg.get("normalize_encoder_y_to_zero", True) and len(points) > 0:
+            finite_y = np.isfinite(points[:, 1])
+            if finite_y.any():
+                y0 = float(points[finite_y][0, 1])
+                points[:, 1] = points[:, 1] - y0
+
         logger.info(
-            "Acquisition complete: %d valid points (NaN removed).", len(points)
+            "Acquisition complete: %d valid points (NaN removed). mode=%s, use_encoder_y=%s",
+            len(points),
+            mode,
+            use_encoder,
         )
         return points

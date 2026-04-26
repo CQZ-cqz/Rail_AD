@@ -1292,6 +1292,68 @@
        </widget>
       </item>
       <item>
+       <widget class="QGroupBox" name="group_encoder">
+        <property name="title">
+         <string>里程编码器</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_encoder">
+         <item>
+          <widget class="QLabel" name="label_encoder_pos_title">
+           <property name="text">
+            <string>里程位置:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_encoder_pos">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>-- mm</string>
+           </property>
+           <property name="styleSheet">
+            <string>font-weight: bold; color: #0066cc;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_encoder_connect">
+           <property name="text">
+            <string>连接</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_encoder_zero">
+           <property name="text">
+            <string>清零</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_encoder">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <widget class="QTextEdit" name="textEdit_log">
         <property name="maximumSize">
          <size>

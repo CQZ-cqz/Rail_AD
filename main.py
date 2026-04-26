@@ -117,7 +117,7 @@ def scan_trip(cfg: Dict[str, Any]) -> List[str]:
     odometry.start()
 
     scanner = create_scanner(cfg)
-    connected = scanner.connect()
+    connected = scanner.connect_by_ip(cfg["scanner"]["ip"])
     if not connected:
         odometry.stop()
         raise RuntimeError("Scanner connection failed.")

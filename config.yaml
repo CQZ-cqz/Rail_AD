@@ -1,7 +1,8 @@
 scanner:
-  trigger_mode: fixed_rate
+  trigger_mode: encoder
+  ip: 169.254.8.16
   encoder:
-    trigger_direction: forward
+    trigger_direction: both
     signal_counting_mode: 1x
     trigger_interval: 2
     scan_line_count: 2500
@@ -25,9 +26,13 @@ scanner:
   gap_filling: 16
   filter: Mean
   mean_filter_window: 2
+  use_encoder_y: false
 odometry:
-  enabled: false
-  tcp_ip: 192.168.1.200
+  enabled: true
+  connection_type: serial
+  com_port: COM1
+  baudrate: 9600
+  tcp_ip: 168.254.88.200
   tcp_port: 4001
   resolution: 1024
   travel_per_rev_mm: 250.0
@@ -37,8 +42,8 @@ odometry:
 virtual_odometry:
   speed_mm_per_s: 100.0
 track:
-  total_length_mm: 10000.0
-  debug_segment_length_mm: 2000.0
+  total_length_mm: 5000.0
+  debug_segment_length_mm: 5000.0
 roi:
   x_min: 0
   x_max: 200.0
@@ -70,7 +75,7 @@ correction:
     min_valid_frame_ratio: 0.5
   corrector:
     frame_thickness_mm: 1.0
-    smooth_window_frames: 5000.0
+    smooth_window_frames: 5000
     smooth_polyorder: 1
     rail_head_percentile: 0.0
     min_points_per_frame: 10

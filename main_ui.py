@@ -47,12 +47,13 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    cfg = load_config(args.config)
+    config_path = str(Path(args.config).resolve())
+    cfg = load_config(config_path)
     setup_logging(cfg)
-    logger.info("GUI starting with config: %s", args.config)
+    logger.info("GUI starting with config: %s", config_path)
 
     app = QApplication(sys.argv)
-    window = MainWindow(cfg=cfg, config_path=args.config)
+    window = MainWindow(cfg=cfg, config_path=config_path)
     window.show()
     return app.exec_()
 

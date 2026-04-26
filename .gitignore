@@ -2,9 +2,10 @@ weights/*.pth
 data/*
 __pycache__/
 *.log
-logs/*
+log/*
 *.md
 3D_profiler/*.json
 3D_profiler/*.md
 2D_AD/*
 3D_AD/*
+.vscode/*
